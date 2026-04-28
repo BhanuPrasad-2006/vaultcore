@@ -1,16 +1,18 @@
-/** @type {import('tailwindcss').Config} */
+name=frontend/tailwind.config.js
+
 export default {
   content: [
     "./index.html",
-    "./src/**/*.{js,jsx,ts,tsx}",
+    "./src/**/*.{js,jsx}",
   ],
   theme: {
     extend: {
       colors: {
-        primary: "#1a1a2e",
-        secondary: "#16213e",
-        accent: "#0f3460",
-        highlight: "#e94560",
+        cyber: {
+          50: '#f3f0ff',
+          500: '#a855f7',
+          900: '#3f0f5c',
+        }
       }
     },
   },

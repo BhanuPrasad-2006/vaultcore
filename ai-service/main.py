@@ -1,80 +1,109 @@
-import os
-from flask import Flask, request, jsonify
+name=ai-service/main.py
+
+from fastapi import FastAPI, HTTPException
+from pydantic import BaseModel
+from sklearn.ensemble import IsolationForest
 import numpy as np
-from datetime import datetime
+import uvicorn
+import json
 import logging
 
-app = Flask(__name__)
 logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
-# Threat detection model
-class ThreatDetector:
-    def __init__(self):
-        self.model = None
-        self.load_model()
-    
-    def load_model(self):
-        """Load pre-trained threat detection model"""
-        # TODO: Load actual ML model
-        pass
-    
-    def detect_threat(self, data):
-        """Detect threats in user behavior"""
-        try:
-            features = self.extract_features(data)
-            prediction = self.predict(features)
-            return {
-                'threat_level': prediction['level'],
-                'confidence': prediction['confidence'],
-                'timestamp': datetime.now().isoformat()
-            }
-        except Exception as e:
-            logging.error(f"Error in threat detection: {str(e)}")
-            return {'error': str(e)}, 500
-    
-    def extract_features(self, data):
-        """Extract features from user data"""
-        return np.array([1, 2, 3])  # Placeholder
-    
-    def predict(self, features):
-        """Make prediction"""
-        return {'level': 'low', 'confidence': 0.85}
+app = FastAPI(title="VaultCore AI Service", version="1.0.0")
 
-detector = ThreatDetector()
+# Initialize Isolation Forest model
+model = IsolationForest(contamination=0.1, random_state=42, n_estimators=100)
 
-@app.route('/health', methods=['GET'])
-def health():
-    return jsonify({'status': 'ok'}), 200
+# Training data for the model
+training_data = np.array([
+    [100, 1000, 5, 10],
+    [500, 5000, 20, 14],
+    [1000, 10000, 50, 18],
+    [200, 2000, 10, 12],
+    [300, 3000, 15, 16],
+    [150, 1500, 8, 11],
+    [2000, 20000, 100, 22],
+    [50, 500, 2, 9],
+    [750, 7500, 35, 20],
+    [400, 4000, 25, 13]
+])
 
-@app.route('/api/detect', methods=['POST'])
-def detect_threat():
-    """Endpoint to detect threats"""
+model.fit(training_data)
+logger.info("Isolation Forest model trained successfully")
+
+class RiskRequest(BaseModel):
+    amount: float
+    velocity_1h: float
+    distance_from_home_km: float
+    time_of_day: int
+
+class RiskResponse(BaseModel):
+    risk_score: int
+    recommended_action: str
+    confidence: float
+
+@app.post('/analyze-risk', response_model=RiskResponse)
+async def analyze_risk(request: RiskRequest):
     try:
-        data = request.json
-        result = detector.detect_threat(data)
-        return jsonify(result), 200
+        logger.info(f"Analyzing risk for transaction: amount={request.amount}")
+        
+        features = np.array([[
+            request.amount, 
+            request.velocity_1h, 
+            request.distance_from_home_km, 
+            request.time_of_day
+        ]])
+        
+        # Get anomaly score
+        anomaly_score = model.decision_function(features)[0]
+        
+        # Convert anomaly score to risk score (0-100)
+        # Anomaly score ranges from -1 to 1, where negative values indicate anomalies
+        risk_score = int(np.clip((1 - (anomaly_score + 1) / 2) * 100, 0, 100))
+        
+        # Determine recommended action based on risk score
+        if risk_score < 40:
+            recommended_action = 'ALLOW'
+            confidence = 0.95
+        elif risk_score <= 70:
+            recommended_action = 'REQUIRE_2FA'
+            confidence = 0.85
+        else:
+            recommended_action = 'FREEZE_ACCOUNT'
+            confidence = 0.90
+        
+        logger.info(f"Risk analysis completed: risk_score={risk_score}, action={recommended_action}")
+        
+        return RiskResponse(
+            risk_score=risk_score,
+            recommended_action=recommended_action,
+            confidence=confidence
+        )
     except Exception as e:
-        logging.error(f"Error: {str(e)}")
-        return jsonify({'error': str(e)}), 500
+        logger.error(f"Error analyzing risk: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
 
-@app.route('/api/analyze', methods=['POST'])
-def analyze_withdrawal():
-    """Analyze withdrawal request for fraud"""
-    try:
-        data = request.json
-        amount = data.get('amount')
-        user_profile = data.get('user_profile')
-        
-        # TODO: Implement fraud detection logic
-        risk_score = 0.3
-        
-        return jsonify({
-            'risk_score': risk_score,
-            'is_suspicious': risk_score > 0.7,
-            'recommendation': 'approve' if risk_score < 0.7 else 'review'
-        }), 200
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
+@app.get('/health')
+async def health():
+    return {
+        'status': 'healthy',
+        'service': 'VaultCore AI Fraud Detection',
+        'model': 'Isolation Forest',
+        'timestamp': str(np.datetime64('now'))
+    }
+
+@app.get('/')
+async def root():
+    return {
+        'service': 'VaultCore AI Microservice',
+        'version': '1.0.0',
+        'endpoints': {
+            'analyze_risk': 'POST /analyze-risk',
+            'health': 'GET /health'
+        }
+    }
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000, debug=os.getenv('DEBUG', False))
+    uvicorn.run(app, host='0.0.0.0', port=5000)

@@ -1,4 +1,6 @@
-FROM python:3.11-slim
+name=ai-service/Dockerfile
+
+FROM python:3.10-slim
 
 WORKDIR /app
 
@@ -10,4 +12,7 @@ COPY . .
 
 EXPOSE 5000
 
-CMD ["gunicorn", "--bind", "0.0.0.0:5000", "--workers", "4", "main:app"]
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+  CMD python -c "import requests; requests.get('http://localhost:5000/health')"
+
+CMD ["python", "main.py"]
