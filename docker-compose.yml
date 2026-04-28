@@ -1,0 +1,131 @@
+version: '3.8'
+
+services:
+  # MySQL Database
+  mysql:
+    image: mysql:8.0
+    container_name: vaultcore-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: vaultcore
+      MYSQL_USER: vaultuser
+      MYSQL_PASSWORD: vaultpass
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./database/mysql_schema.sql:/docker-entrypoint-initdb.d/schema.sql
+    networks:
+      - vaultcore-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # MongoDB
+  mongodb:
+    image: mongo:6.0
+    container_name: vaultcore-mongodb
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: mongopass
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+    networks:
+      - vaultcore-network
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Redis
+  redis:
+    image: redis:7-alpine
+    container_name: vaultcore-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - vaultcore-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Backend API
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: vaultcore-backend
+    environment:
+      NODE_ENV: production
+      PORT: 3001
+      MYSQL_HOST: mysql
+      MYSQL_USER: vaultuser
+      MYSQL_PASSWORD: vaultpass
+      MYSQL_DATABASE: vaultcore
+      MONGODB_URI: mongodb://admin:mongopass@mongodb:27017/vaultcore
+      REDIS_URL: redis://redis:6379
+      JWT_SECRET: your_secret_key_here
+      AI_SERVICE_URL: http://ai-service:5000
+    ports:
+      - "3001:3001"
+    depends_on:
+      mysql:
+        condition: service_healthy
+      mongodb:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - vaultcore-network
+    volumes:
+      - ./backend:/app
+    command: npm run dev
+
+  # AI Service
+  ai-service:
+    build:
+      context: ./ai-service
+      dockerfile: Dockerfile
+    container_name: vaultcore-ai
+    environment:
+      FLASK_ENV: production
+      FLASK_APP: main.py
+    ports:
+      - "5000:5000"
+    networks:
+      - vaultcore-network
+    volumes:
+      - ./ai-service:/app
+
+  # Frontend
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: vaultcore-frontend
+    environment:
+      VITE_API_URL: http://localhost:3001/api
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+    networks:
+      - vaultcore-network
+
+volumes:
+  mysql_data:
+  mongo_data:
+  redis_data:
+
+networks:
+  vaultcore-network:
+    driver: bridge

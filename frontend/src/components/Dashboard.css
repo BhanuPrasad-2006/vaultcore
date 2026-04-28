@@ -1,0 +1,119 @@
+.dashboard-container {
+  min-height: 100vh;
+  background-color: #f9fafb;
+}
+
+.dashboard-header {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 30px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.dashboard-header h1 {
+  font-size: 24px;
+  margin: 0;
+}
+
+.btn-logout {
+  background-color: rgba(255, 255, 255, 0.2);
+  color: white;
+  padding: 8px 16px;
+  border: 1px solid white;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.btn-logout:hover {
+  background-color: rgba(255, 255, 255, 0.3);
+}
+
+.dashboard-content {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 30px 20px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 30px;
+}
+
+@media (max-width: 768px) {
+  .dashboard-content {
+    grid-template-columns: 1fr;
+  }
+}
+
+.assets-section,
+.withdrawal-section {
+  background: white;
+  padding: 25px;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.assets-section h2,
+.withdrawal-section h2 {
+  margin-top: 0;
+  margin-bottom: 20px;
+  color: #1f2937;
+}
+
+.assets-list {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.asset-card {
+  border: 1px solid #e5e7eb;
+  padding: 15px;
+  border-radius: 6px;
+  transition: all 0.3s ease;
+}
+
+.asset-card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.asset-card h3 {
+  margin: 0 0 10px 0;
+  color: #1f2937;
+}
+
+.asset-amount {
+  font-size: 20px;
+  font-weight: bold;
+  color: #10b981;
+  margin: 5px 0;
+}
+
+.asset-type {
+  color: #6b7280;
+  font-size: 12px;
+  margin: 0;
+}
+
+.withdrawal-form {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.message {
+  padding: 12px;
+  border-radius: 4px;
+  margin-bottom: 10px;
+}
+
+.message.success {
+  background-color: #d1fae5;
+  color: #065f46;
+}
+
+.message.error {
+  background-color: #fee2e2;
+  color: #dc2626;
+}
