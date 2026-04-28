@@ -1,16 +1,24 @@
+name=backend/config/mongo.js
+
 const mongoose = require('mongoose');
+const dotenv = require('dotenv');
 
-const connectMongo = async () => {
+dotenv.config();
+
+const mongoUri = process.env.MONGO_URI || 'mongodb://localhost:27017/vaultcore';
+
+async function initMongo() {
   try {
-    await mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/vaultcore', {
+    await mongoose.connect(mongoUri, {
       useNewUrlParser: true,
-      useUnifiedTopology: true,
+      useUnifiedTopology: true
     });
-    console.log('MongoDB connected');
+    console.log('[DB] MongoDB connected successfully');
+    return mongoose;
   } catch (error) {
-    console.error('MongoDB connection error:', error);
-    process.exit(1);
+    console.error('[DB] MongoDB connection error:', error);
+    throw error;
   }
-};
+}
 
-module.exports = connectMongo;
+module.exports = { initMongo };

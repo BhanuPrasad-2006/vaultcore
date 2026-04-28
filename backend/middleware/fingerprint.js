@@ -1,11 +1,12 @@
-const fingerprint = require('express-fingerprint');
+name=backend/middleware/fingerprint.js
 
-const fingerprintMiddleware = fingerprint.default({
-  parameters: [
-    fingerprint.useragent,
-    fingerprint.acceptLanguage,
-    fingerprint.acceptEncoding,
-  ],
-});
+const crypto = require('crypto');
 
-module.exports = fingerprintMiddleware;
+function generateDeviceFingerprint(req) {
+  const userAgent = req.get('user-agent') || '';
+  const ip = req.ip || req.connection.remoteAddress;
+  const fingerprint = crypto.createHash('sha256').update(`${ip}${userAgent}`).digest('hex');
+  return fingerprint;
+}
+
+module.exports = { generateDeviceFingerprint };

@@ -1,34 +1,24 @@
+name=backend/models/ThreatEvent.js
+
 const mongoose = require('mongoose');
 
 const threatEventSchema = new mongoose.Schema({
-  userId: {
-    type: String,
-    required: true,
-    index: true,
+  user_id: { type: Number, required: true },
+  severity: { 
+    type: String, 
+    enum: ['LOW', 'MEDIUM', 'CRITICAL'], 
+    required: true 
   },
-  eventType: {
-    type: String,
-    enum: ['login_attempt', 'unauthorized_access', 'withdrawal', 'suspicious_activity'],
-    required: true,
+  reason: { type: String, required: true },
+  timestamp: { 
+    type: Date, 
+    default: Date.now, 
+    expires: 2592000 
   },
-  severity: {
-    type: String,
-    enum: ['low', 'medium', 'high', 'critical'],
-    default: 'medium',
-  },
-  description: String,
-  ipAddress: String,
-  userAgent: String,
-  fingerprint: String,
-  timestamp: {
-    type: Date,
-    default: Date.now,
-    index: true,
-  },
-  resolved: {
-    type: Boolean,
-    default: false,
-  },
-});
+  ip_address: { type: String },
+  device_fingerprint: { type: String }
+}, { collection: 'threat_events' });
 
-module.exports = mongoose.model('ThreatEvent', threatEventSchema);
+const ThreatEvent = mongoose.model('ThreatEvent', threatEventSchema);
+
+module.exports = ThreatEvent;
