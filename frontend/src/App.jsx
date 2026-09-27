@@ -1,5 +1,3 @@
-name=frontend/src/App.jsx
-
 import { useState, useEffect } from 'react'
 import { io } from 'socket.io-client'
 import Dashboard from './components/Dashboard'

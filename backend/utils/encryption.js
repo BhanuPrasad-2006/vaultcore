@@ -1,5 +1,3 @@
-name=backend/utils/encryption.js
-
 const crypto = require('crypto');
 
 const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY || '32characterkeyforencryption12345';

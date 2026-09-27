@@ -1,5 +1,3 @@
-name=backend/models/ThreatEvent.js
-
 const mongoose = require('mongoose');
 
 const threatEventSchema = new mongoose.Schema({

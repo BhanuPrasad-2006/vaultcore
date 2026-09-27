@@ -1,5 +1,3 @@
-name=ai-service/main.py
-
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 from sklearn.ensemble import IsolationForest

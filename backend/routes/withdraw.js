@@ -1,5 +1,3 @@
-name=backend/routes/withdraw.js
-
 const express = require('express');
 const router = express.Router();
 const { getPool } = require('../config/postgres');

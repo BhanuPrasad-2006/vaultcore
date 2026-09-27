@@ -1,5 +1,3 @@
-name=frontend/src/components/Dashboard.jsx
-
 import { useState, useEffect } from 'react'
 
 function Dashboard({ token, userId, onLogout, alerts, socket }) {

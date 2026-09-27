@@ -1,5 +1,3 @@
-name=frontend/src/components/Login.jsx
-
 import { useState } from 'react'
 
 function Login({ onLogin }) {

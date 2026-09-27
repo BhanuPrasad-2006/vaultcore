@@ -1,5 +1,3 @@
-name=backend/middleware/fingerprint.js
-
 const crypto = require('crypto');
 
 function generateDeviceFingerprint(req) {
